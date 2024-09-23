@@ -373,25 +373,24 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
     switch (action)
     {
     case VcsAction_Add:
-        vcs.AddOp.execute(files.GetVector());
+        vcs.AddOp->execute(files.GetVector());
         break;
     case VcsAction_Remove:
-        vcs.RemoveOp.execute(files.GetVector());
+        vcs.RemoveOp->execute(files.GetVector());
         break;
     case VcsAction_Commit:
-        vcs.CommitOp.execute(files.GetVector());
+        vcs.CommitOp->execute(files.GetVector());
         break;
     case VcsAction_Diff:
-        vcs.DiffOp.execute(files.GetVector());
+        vcs.DiffOp->execute(files.GetVector());
         break;
     case VcsAction_Revert:
-        vcs.RevertOp.execute(files.GetVector());
+        vcs.RevertOp->execute(files.GetVector());
         break;
     case VcsAction_Refresh:
-        vcs.UpdateOp.execute(files.GetVector());
         break;
     }
-    vcs.UpdateOp.execute(files.GetVector());
+    vcs.UpdateOp->execute(files.GetVector());
 }
 
 void cbvcs::OnAdd( wxCommandEvent& /*event*/ )
@@ -460,7 +459,7 @@ void cbvcs::OnProjectOpen( CodeBlocksEvent& event )
         files.CreateFileItem(pf);
     }
 
-    vcs.UpdateOp.execute(files.GetVector());
+    vcs.UpdateOp->execute(files.GetVector());
 }
 
 void cbvcs::OnProjectClose( CodeBlocksEvent& event )
@@ -496,7 +495,7 @@ void cbvcs::OnProjectSave( CodeBlocksEvent& event )
     }
     TreeItemVector files;
     files.CreateProjectItem(prjFilename, prjTracker->GetProjectState());
-    prjTracker->GetVcs().UpdateOp.execute(files.GetVector());
+    prjTracker->GetVcs().UpdateOp->execute(files.GetVector());
 }
 
 void cbvcs::OnEditorSave( CodeBlocksEvent& event )
@@ -538,5 +537,5 @@ void cbvcs::OnEditorSave( CodeBlocksEvent& event )
 
     VcsFileItem vcsItem(SavedFile);
     UpdateList.push_back(&vcsItem);
-    prjTracker->GetVcs().UpdateOp.execute(UpdateList);
+    prjTracker->GetVcs().UpdateOp->execute(UpdateList);
 }

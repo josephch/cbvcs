@@ -18,12 +18,12 @@
 #include "IVersionControlSystem.h"
 
 IVersionControlSystem::IVersionControlSystem(const wxString& project,
-                                             VcsFileOp& update,
-                                             VcsFileOp& add,
-                                             VcsFileOp& remove,
-                                             VcsFileOp& commit,
-                                             VcsFileOp& diff,
-                                             VcsFileOp& revert) :
+                                             VcsFileOp* update,
+                                             VcsFileOp* add,
+                                             VcsFileOp* remove,
+                                             VcsFileOp* commit,
+                                             VcsFileOp* diff,
+                                             VcsFileOp* revert) :
     UpdateOp(update),
     AddOp(add),
     RemoveOp(remove),

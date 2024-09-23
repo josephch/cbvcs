@@ -31,21 +31,21 @@ class IVersionControlSystem
 {
     public:
         IVersionControlSystem(const wxString& project,
-                              VcsFileOp& update,
-                              VcsFileOp& add,
-                              VcsFileOp& remove,
-                              VcsFileOp& commit,
-                              VcsFileOp& diff,
-                              VcsFileOp& revert);
+                              VcsFileOp* update,
+                              VcsFileOp* add,
+                              VcsFileOp* remove,
+                              VcsFileOp* commit,
+                              VcsFileOp* diff,
+                              VcsFileOp* revert);
         virtual ~IVersionControlSystem();
 
-        VcsFileOp& UpdateOp;
-        VcsFileOp& AddOp;
-        VcsFileOp& RemoveOp;
+        VcsFileOp* UpdateOp;
+        VcsFileOp* AddOp;
+        VcsFileOp* RemoveOp;
         virtual bool move(std::vector<VcsTreeItem*>&) = 0;
-        VcsFileOp& CommitOp;
-        VcsFileOp& DiffOp;
-        VcsFileOp& RevertOp;
+        VcsFileOp* CommitOp;
+        VcsFileOp* DiffOp;
+        VcsFileOp* RevertOp;
 
     protected:
         const wxString& m_project;

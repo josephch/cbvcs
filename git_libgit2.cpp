@@ -25,7 +25,7 @@
 #include <wx/string.h>
 
 LibGit2::LibGit2(const wxString &project, ICommandExecuter &cmdExecutor, wxString workDirectory)
-    : IVersionControlSystem(project, m_GitUpdate, m_GitAdd, m_GitRemove, m_GitCommit, m_GitDiff, m_GitRevert),
+    : IVersionControlSystem(project, &m_GitUpdate, &m_GitAdd, &m_GitRemove, &m_GitCommit, &m_GitDiff, &m_GitRevert),
       m_workDirectory(std::move(workDirectory)),
       m_CmdExecutor(cmdExecutor),
       m_GitUpdate(*this, m_GitRoot, m_CmdExecutor),
