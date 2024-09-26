@@ -36,7 +36,8 @@ class IVersionControlSystem
                               VcsFileOp* remove,
                               VcsFileOp* commit,
                               VcsFileOp* diff,
-                              VcsFileOp* revert);
+                              VcsFileOp* revert,
+                              VcsFileOp* updateFull);
         virtual ~IVersionControlSystem();
 
         VcsFileOp* UpdateOp;
@@ -46,6 +47,7 @@ class IVersionControlSystem
         VcsFileOp* CommitOp;
         VcsFileOp* DiffOp;
         VcsFileOp* RevertOp;
+        VcsFileOp* UpdateFullOp;
 
     protected:
         const wxString& m_project;

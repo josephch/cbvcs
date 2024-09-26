@@ -94,10 +94,70 @@ class GitRepoIndex
     }
 };
 
+ItemState getItemStateFromLibGit2StatusFlag(unsigned int statusFlags)
+{
+    ItemState status;
+
+    if (statusFlags & GIT_STATUS_INDEX_NEW)
+    {
+        status = Item_Added;
+    }
+    else if (statusFlags & GIT_STATUS_INDEX_MODIFIED)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_INDEX_RENAMED)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_INDEX_TYPECHANGE)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_INDEX_DELETED)
+    {
+        status = Item_Removed;
+    }
+    else if (statusFlags & GIT_STATUS_CONFLICTED)
+    {
+        status = Item_Conflicted;
+    }
+    else if (statusFlags & GIT_STATUS_WT_NEW)
+    {
+        status = Item_Untracked;
+    }
+    else if (statusFlags & GIT_STATUS_WT_MODIFIED)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_WT_RENAMED)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_WT_TYPECHANGE)
+    {
+        status = Item_Modified;
+    }
+    else if (statusFlags & GIT_STATUS_WT_DELETED)
+    {
+        status = Item_Removed;
+    }
+    else if (statusFlags & GIT_STATUS_CONFLICTED)
+    {
+        status = Item_Conflicted;
+    }
+    else
+    {
+        status = Item_UpToDate;
+    }
+    return status;
+}
+
 LibGit2UpdateOp::LibGit2UpdateOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
 void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_files) const
 {
+    wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
     fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
             proj_files.size());
@@ -110,9 +170,7 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_fil
         {
             VcsTreeItem *pf = *fi;
 
-            wxString relativeFilename;
-
-            relativeFilename = pf->GetRelativeName(m_VcsRootDir);
+            wxString relativeFilename = pf->GetRelativeName(m_VcsRootDir);
 
             if (relativeFilename.length() == 0)
             {
@@ -140,65 +198,57 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_fil
             {
                 fprintf(stderr, "LibGit2::%s:%d git_status_file file %s statusFlags 0x%x\n", __FUNCTION__, __LINE__, relativeFilename.ToUTF8().data(),
                         statusFlags);
-                ItemState status;
-
-                if (statusFlags & GIT_STATUS_INDEX_NEW)
-                {
-                    status = Item_Added;
-                }
-                else if (statusFlags & GIT_STATUS_INDEX_MODIFIED)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_INDEX_RENAMED)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_INDEX_TYPECHANGE)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_INDEX_DELETED)
-                {
-                    status = Item_Removed;
-                }
-                else if (statusFlags & GIT_STATUS_CONFLICTED)
-                {
-                    status = Item_Conflicted;
-                }
-                else if (statusFlags & GIT_STATUS_WT_NEW)
-                {
-                    status = Item_Untracked;
-                }
-                else if (statusFlags & GIT_STATUS_WT_MODIFIED)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_WT_RENAMED)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_WT_TYPECHANGE)
-                {
-                    status = Item_Modified;
-                }
-                else if (statusFlags & GIT_STATUS_WT_DELETED)
-                {
-                    status = Item_Removed;
-                }
-                else if (statusFlags & GIT_STATUS_CONFLICTED)
-                {
-                    status = Item_Conflicted;
-                }
-                else
-                {
-                    status = Item_UpToDate;
-                }
-                pf->SetState(status);
+                pf->SetState(getItemStateFromLibGit2StatusFlag(statusFlags));
             }
             pf->VisualiseState();
         }
     }
+    fprintf(stderr, "LibGit2::LibGit2UpdateFullOp%s:%d Exit. Took %ld ms\n", __FUNCTION__, __LINE__, sw.Time());
+}
+
+LibGit2UpdateFullOp::LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2UpdateOp(vcs, vcsRootDir, shellUtils) {}
+
+static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *payload)
+{
+    std::pair  <const wxString*, std::vector<VcsTreeItem*> *>* params =  (std::pair  <const wxString*, std::vector<VcsTreeItem*> *>*)payload;
+    std::vector<VcsTreeItem*> &tree = *params->second;
+
+    auto it = std::find_if(tree.begin(), tree.end(), [path, &params](const VcsTreeItem* item)
+                                                    {
+                                                        return (item->GetRelativeName(*params->first) == path);
+                                                    });
+    if (it != tree.end())
+    {
+        fprintf(stderr, "LibGit2::%s:%d path %s present in list. statusFlags  %u\n", __FUNCTION__, __LINE__, path, statusFlags);
+        VcsTreeItem *pf = *it;
+        pf->SetState(getItemStateFromLibGit2StatusFlag(statusFlags));
+        pf->VisualiseState();
+        std::iter_swap(it, tree.end() - 1);
+        tree.erase(tree.end() - 1);
+    }
+    return 0;
+}
+
+void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_files) const
+{
+    wxStopWatch sw;
+    GitRepo gitRepo(m_VcsRootDir);
+    fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
+            proj_files.size());
+    std::vector<VcsTreeItem *> projFilesCopy = proj_files;
+    if (gitRepo.m_repo)
+    {
+        std::pair <const wxString*, std::vector<VcsTreeItem*> *>  param;
+        param.first = &m_VcsRootDir;
+        param.second = &projFilesCopy;
+        git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
+        for (VcsTreeItem *pf : projFilesCopy)
+        {
+            pf->SetState(Item_UpToDate);
+            pf->VisualiseState();
+        }
+    }
+    fprintf(stderr, "LibGit2::LibGit2UpdateFullOp%s:%d Exit. Took %ld ms\n", __FUNCTION__, __LINE__, sw.Time());
 }
 
 /***********************************************************************

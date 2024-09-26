@@ -360,6 +360,10 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
             cbProject* prj = fileTreeData->GetProject();
             files.CreateProjectItem(prj->GetFilename(), prjTracker->GetProjectState());
             GetDescendents(files, *tree, selItem);
+            //special case. On project refresh use update all
+            IVersionControlSystem& vcs = selectedProjectTracker->GetVcs();
+            vcs.UpdateFullOp->execute(files.GetVector());
+            return;
         }
     }
 
@@ -459,7 +463,7 @@ void cbvcs::OnProjectOpen( CodeBlocksEvent& event )
         files.CreateFileItem(pf);
     }
 
-    vcs.UpdateOp->execute(files.GetVector());
+    vcs.UpdateFullOp->execute(files.GetVector());
 }
 
 void cbvcs::OnProjectClose( CodeBlocksEvent& event )

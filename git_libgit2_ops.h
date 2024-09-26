@@ -33,7 +33,8 @@ class LibGit2UpdateOp : public LibGit2_Op
 {
   public:
     LibGit2UpdateOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils);
-
+  protected:
+    void UpdateItem(VcsTreeItem *pf, const class GitRepo& gitRepo) const;
   private:
     virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
 };
@@ -81,6 +82,15 @@ class LibGit2RevertOp : public LibGit2_Op
 
   private:
     virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+};
+
+class LibGit2UpdateFullOp : public LibGit2UpdateOp
+{
+  public:
+    LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils);
+
+  private:
+    void ExecuteImplementation(std::vector<VcsTreeItem *> &) const override;
 };
 
 #endif // LibGit2_OPS_H

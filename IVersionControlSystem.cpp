@@ -23,13 +23,15 @@ IVersionControlSystem::IVersionControlSystem(const wxString& project,
                                              VcsFileOp* remove,
                                              VcsFileOp* commit,
                                              VcsFileOp* diff,
-                                             VcsFileOp* revert) :
+                                             VcsFileOp* revert,
+                                             VcsFileOp* updateFull) :
     UpdateOp(update),
     AddOp(add),
     RemoveOp(remove),
     CommitOp(commit),
     DiffOp(diff),
     RevertOp(revert),
+    UpdateFullOp(updateFull),
     m_project(project)
 {
     //ctor
