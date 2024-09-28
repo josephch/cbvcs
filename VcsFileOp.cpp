@@ -24,7 +24,7 @@
  * Effects:
  ***********************************************************************/
 void
-VcsFileOp::execute(std::vector<VcsTreeItem *> &itemList)
+VcsFileOp::execute(std::vector<VcsTreeItem*> itemList)
 {
     m_ShellUtils.pushd(m_VcsRootDir);
     ExecuteImplementation(itemList);

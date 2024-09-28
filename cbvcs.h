@@ -141,8 +141,8 @@ class cbvcs : public cbPlugin
         class ShellUtilImpl* m_ShellUtils;
 
         vcsProjectTracker* GetVcsInstance(const FileTreeData*);
-        void GetFileItem(TreeItemVector& treeVector, const wxTreeCtrl&, const wxTreeItemId&);
-        void GetDescendents(TreeItemVector& treeVector, const wxTreeCtrl&, const wxTreeItemId&);
+        void GetFileItem(std::vector<VcsTreeItem*>& treeVector, const wxTreeCtrl&, const wxTreeItemId&);
+        void GetDescendents(std::vector<VcsTreeItem*>& treeVector, const wxTreeCtrl&, const wxTreeItemId&);
         void CreateProjectMenu(wxMenu* menu, const FileTreeData* data);
         void CreateFileMenu(wxMenu* menu, const FileTreeData* data);
         void CreateFolderMenu(wxMenu* menu);

@@ -33,14 +33,14 @@ class VcsFileOp
             {}
 
         virtual ~VcsFileOp() {}
-        void execute(std::vector<VcsTreeItem*>&);
+        void execute(std::vector<VcsTreeItem*>);
 
     protected:
         const wxString& m_VcsRootDir;
         ICommandExecuter& m_ShellUtils;
 
     private:
-        virtual void ExecuteImplementation(std::vector<VcsTreeItem*>&) const = 0;
+        virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const = 0;
 };
 
 #endif // VCSFILEOP_H

@@ -23,7 +23,7 @@ class LibGit2_Op : public VcsFileOp
     LibGit2 &m_vcs;
 
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const = 0;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const = 0;
 };
 
 class ICommandExecuter;
@@ -36,7 +36,7 @@ class LibGit2UpdateOp : public LibGit2_Op
   protected:
     void UpdateItem(VcsTreeItem *pf, const class GitRepo& gitRepo) const;
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2AddOp : public LibGit2_Op
@@ -45,7 +45,7 @@ class LibGit2AddOp : public LibGit2_Op
     LibGit2AddOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
   protected:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2CommitOp : public LibGit2AddOp
@@ -54,7 +54,7 @@ class LibGit2CommitOp : public LibGit2AddOp
     LibGit2CommitOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2AddOp(vcs, vcsRootDir, shellUtils) {}
 
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2DiffOp : public LibGit2_Op
@@ -63,7 +63,7 @@ class LibGit2DiffOp : public LibGit2_Op
     LibGit2DiffOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2RemoveOp : public LibGit2_Op
@@ -72,7 +72,7 @@ class LibGit2RemoveOp : public LibGit2_Op
     LibGit2RemoveOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2RevertOp : public LibGit2_Op
@@ -81,7 +81,7 @@ class LibGit2RevertOp : public LibGit2_Op
     LibGit2RevertOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
   private:
-    virtual void ExecuteImplementation(std::vector<VcsTreeItem *> &) const;
+    virtual void ExecuteImplementation(std::vector<VcsTreeItem*>) const;
 };
 
 class LibGit2UpdateFullOp : public LibGit2UpdateOp
@@ -90,7 +90,7 @@ class LibGit2UpdateFullOp : public LibGit2UpdateOp
     LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils);
 
   private:
-    void ExecuteImplementation(std::vector<VcsTreeItem *> &) const override;
+    void ExecuteImplementation(std::vector<VcsTreeItem*>) const override;
 };
 
 #endif // LibGit2_OPS_H

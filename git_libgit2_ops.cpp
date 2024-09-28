@@ -155,7 +155,7 @@ ItemState getItemStateFromLibGit2StatusFlag(unsigned int statusFlags)
 
 LibGit2UpdateOp::LibGit2UpdateOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
-void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_files) const
+void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_files) const
 {
     wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
@@ -229,20 +229,19 @@ static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *p
     return 0;
 }
 
-void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj_files) const
+void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_files) const
 {
     wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
     fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
             proj_files.size());
-    std::vector<VcsTreeItem *> projFilesCopy = proj_files;
     if (gitRepo.m_repo)
     {
         std::pair <const wxString*, std::vector<VcsTreeItem*> *>  param;
         param.first = &m_VcsRootDir;
-        param.second = &projFilesCopy;
+        param.second = &proj_files;
         git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
-        for (VcsTreeItem *pf : projFilesCopy)
+        for (VcsTreeItem* pf : proj_files)
         {
             pf->SetState(Item_UpToDate);
             pf->VisualiseState();
@@ -257,7 +256,7 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem *> &proj
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) const
+void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
 {
     wxString pathString;
     GitRepoIndex gitRepoIndex(m_VcsRootDir);
@@ -289,7 +288,7 @@ void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) c
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2CommitOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) const
+void LibGit2CommitOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
 {
     wxArrayString itemList;
     LibGit2AddOp::ExecuteImplementation(pathList);
@@ -396,7 +395,7 @@ void LibGit2CommitOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2RemoveOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) const
+void LibGit2RemoveOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
 {
     GitRepoIndex gitRepoIndex(m_VcsRootDir);
     if (!gitRepoIndex.m_idx)
@@ -439,7 +438,7 @@ static int diff_aggragator_cb(const git_diff_delta *delta, const git_diff_hunk *
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) const
+void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
 {
     GitRepo gitRepo(m_VcsRootDir);
     if (!gitRepo.m_repo)
@@ -507,7 +506,7 @@ void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) 
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2RevertOp::ExecuteImplementation(std::vector<VcsTreeItem *> &pathList) const
+void LibGit2RevertOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
 {
     GitRepo gitRepo(m_VcsRootDir);
     if (!gitRepo.m_repo)
