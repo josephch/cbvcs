@@ -236,7 +236,7 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
 {
     fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
             projectFiles.size());
-    auto executionFn = [this, projectFiles] () mutable
+    auto executionFn = [this] (std::vector<std::shared_ptr<VcsTreeItem>> projectFiles)
     {
         wxStopWatch sw;
         GitRepo gitRepo(m_VcsRootDir);
@@ -258,7 +258,7 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
         }
         fprintf(stderr, "LibGit2::LibGit2UpdateFullOp Async Update:%d Exit. Took %ld ms\n", __LINE__, sw.Time());
     };
-    executionThread = std::thread(executionFn);
+    executionThread = std::thread(executionFn, std::move(projectFiles));
 }
 
 /***********************************************************************
