@@ -155,7 +155,7 @@ ItemState getItemStateFromLibGit2StatusFlag(unsigned int statusFlags)
 
 LibGit2UpdateOp::LibGit2UpdateOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
-void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_files) const
+void LibGit2UpdateOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> proj_files) const
 {
     wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
@@ -164,11 +164,9 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_files
 
     if (gitRepo.m_repo)
     {
-        std::vector<VcsTreeItem *>::iterator fi;
-
-        for (fi = proj_files.begin(); fi != proj_files.end(); fi++)
+        for (auto fi = proj_files.begin(); fi != proj_files.end(); fi++)
         {
-            VcsTreeItem *pf = *fi;
+            VcsTreeItem *pf = fi->get();
 
             wxString relativeFilename = pf->GetRelativeName(m_VcsRootDir);
 
@@ -210,17 +208,17 @@ LibGit2UpdateFullOp::LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDi
 
 static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *payload)
 {
-    std::pair  <const wxString*, std::vector<VcsTreeItem*> *>* params =  (std::pair  <const wxString*, std::vector<VcsTreeItem*> *>*)payload;
-    std::vector<VcsTreeItem*> &tree = *params->second;
+    std::pair  <const wxString*, std::vector<std::shared_ptr<VcsTreeItem>> *>* params =  (std::pair  <const wxString*, std::vector<std::shared_ptr<VcsTreeItem>> *>*)payload;
+    std::vector<std::shared_ptr<VcsTreeItem>> &tree = *params->second;
 
-    auto it = std::find_if(tree.begin(), tree.end(), [path, &params](const VcsTreeItem* item)
+    auto it = std::find_if(tree.begin(), tree.end(), [path, &params](std::shared_ptr<VcsTreeItem> item)
                                                     {
                                                         return (item->GetRelativeName(*params->first) == path);
                                                     });
     if (it != tree.end())
     {
         fprintf(stderr, "LibGit2::%s:%d path %s present in list. statusFlags  %u\n", __FUNCTION__, __LINE__, path, statusFlags);
-        VcsTreeItem *pf = *it;
+        VcsTreeItem *pf = it->get();
         pf->SetState(getItemStateFromLibGit2StatusFlag(statusFlags));
         pf->VisualiseState();
         std::iter_swap(it, tree.end() - 1);
@@ -229,7 +227,7 @@ static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *p
     return 0;
 }
 
-void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_files) const
+void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> proj_files) const
 {
     wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
@@ -237,11 +235,11 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_f
             proj_files.size());
     if (gitRepo.m_repo)
     {
-        std::pair <const wxString*, std::vector<VcsTreeItem*> *>  param;
+        std::pair <const wxString*, std::vector<std::shared_ptr<VcsTreeItem>> *>  param;
         param.first = &m_VcsRootDir;
         param.second = &proj_files;
         git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
-        for (VcsTreeItem* pf : proj_files)
+        for (auto& pf : proj_files)
         {
             pf->SetState(Item_UpToDate);
             pf->VisualiseState();
@@ -256,7 +254,7 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<VcsTreeItem*> proj_f
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
+void LibGit2AddOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList) const
 {
     wxString pathString;
     GitRepoIndex gitRepoIndex(m_VcsRootDir);
@@ -266,7 +264,7 @@ void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) con
         return;
     }
 
-    for (VcsTreeItem *vcsTreeItem : pathList)
+    for (auto &vcsTreeItem : pathList)
     {
         wxString relativeFilename = vcsTreeItem->GetRelativeName(m_VcsRootDir);
         if (relativeFilename.length() == 0)
@@ -288,11 +286,11 @@ void LibGit2AddOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) con
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2CommitOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
+void LibGit2CommitOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList) const
 {
     wxArrayString itemList;
     LibGit2AddOp::ExecuteImplementation(pathList);
-    for (VcsTreeItem *vcsTreeItem : pathList)
+    for (auto &vcsTreeItem : pathList)
     {
         wxString relativeFilename = vcsTreeItem->GetRelativeName(m_VcsRootDir);
         if (relativeFilename.length() == 0)
@@ -395,7 +393,7 @@ void LibGit2CommitOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) 
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2RemoveOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
+void LibGit2RemoveOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList) const
 {
     GitRepoIndex gitRepoIndex(m_VcsRootDir);
     if (!gitRepoIndex.m_idx)
@@ -404,7 +402,7 @@ void LibGit2RemoveOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) 
         return;
     }
 
-    for (VcsTreeItem *vcsTreeItem : pathList)
+    for (auto &vcsTreeItem : pathList)
     {
         wxString relativeFilename = vcsTreeItem->GetRelativeName(m_VcsRootDir);
         if (relativeFilename.length() == 0)
@@ -438,7 +436,7 @@ static int diff_aggragator_cb(const git_diff_delta *delta, const git_diff_hunk *
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
+void LibGit2DiffOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList) const
 {
     GitRepo gitRepo(m_VcsRootDir);
     if (!gitRepo.m_repo)
@@ -449,7 +447,7 @@ void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) co
 
     git_diff_options opts = GIT_DIFF_OPTIONS_INIT;
     opts.pathspec.strings = (char **)malloc(sizeof(char *) * pathList.size());
-    for (VcsTreeItem *vcsTreeItem : pathList)
+    for (auto &vcsTreeItem : pathList)
     {
         wxString relativeFilename = vcsTreeItem->GetRelativeName(m_VcsRootDir);
         if (relativeFilename.length() == 0)
@@ -506,7 +504,7 @@ void LibGit2DiffOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) co
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2RevertOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) const
+void LibGit2RevertOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList) const
 {
     GitRepo gitRepo(m_VcsRootDir);
     if (!gitRepo.m_repo)
@@ -517,7 +515,7 @@ void LibGit2RevertOp::ExecuteImplementation(std::vector<VcsTreeItem*> pathList) 
 
     git_checkout_options opts = {GIT_CHECKOUT_OPTIONS_VERSION, GIT_CHECKOUT_FORCE};
     opts.paths.strings = (char **)malloc(sizeof(char *) * pathList.size());
-    for (VcsTreeItem *vcsTreeItem : pathList)
+    for (auto &vcsTreeItem : pathList)
     {
         wxString relativeFilename = vcsTreeItem->GetRelativeName(m_VcsRootDir);
         if (relativeFilename.length() == 0)
