@@ -3,6 +3,7 @@
 
 #include "VcsFileOp.h"
 #include "VcsTreeItem.h"
+#include <thread>
 
 class LibGit2;
 
@@ -91,6 +92,7 @@ class LibGit2UpdateFullOp : public LibGit2UpdateOp
 
   private:
     void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) const override;
+    mutable std::thread executionThread;
 };
 
 #endif // LibGit2_OPS_H
