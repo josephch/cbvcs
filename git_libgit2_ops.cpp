@@ -157,7 +157,6 @@ LibGit2UpdateOp::LibGit2UpdateOp(LibGit2 &vcs, const wxString &vcsRootDir, IComm
 
 void LibGit2UpdateOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> proj_files) const
 {
-    wxStopWatch sw;
     GitRepo gitRepo(m_VcsRootDir);
     fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
             proj_files.size());
@@ -201,35 +200,40 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeI
             pf->VisualiseState();
         }
     }
-    fprintf(stderr, "LibGit2::LibGit2UpdateFullOp%s:%d Exit. Took %ld ms\n", __FUNCTION__, __LINE__, sw.Time());
 }
 
 LibGit2UpdateFullOp::LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2UpdateOp(vcs, vcsRootDir, shellUtils) {}
 
 static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *payload)
 {
-    std::pair  <const wxString*, std::vector<std::shared_ptr<VcsTreeItem>> *>* params =  (std::pair  <const wxString*, std::vector<std::shared_ptr<VcsTreeItem>> *>*)payload;
-    std::vector<std::shared_ptr<VcsTreeItem>> &tree = *params->second;
-    const wxString& vcsRootDir = *params->first;
+    std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> *param = (std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> *)payload;
+    const wxString& vcsRootDir = *std::get<0>(*param);
+    std::vector<std::shared_ptr<VcsTreeItem>>& tree = *std::get<1>(*param);
+    const LibGit2UpdateFullOp* obj  = std::get<2>(*param);
+
+#ifdef TRACE
     fprintf(stderr, "LibGit2::%s:%d vcsRootDir %s path %s\n", __FUNCTION__, __LINE__, vcsRootDir.ToUTF8().data(), path);
+#endif
     auto it = std::find_if(tree.begin(), tree.end(), [path, &vcsRootDir](const std::shared_ptr<VcsTreeItem> &item)
                                                     {
                                                         return (item->GetRelativeName(vcsRootDir) == path);
                                                     });
     if (it != tree.end())
     {
-        fprintf(stderr, "LibGit2::%s:%d path %s present in list. statusFlags  %u\n", __FUNCTION__, __LINE__, path, statusFlags);
+        fprintf(stderr, "LibGit2::%s:%d path %s present in list. statusFlags  0x%x\n", __FUNCTION__, __LINE__, path, statusFlags);
         VcsTreeItem *pf = it->get();
         pf->SetState(getItemStateFromLibGit2StatusFlag(statusFlags));
         pf->VisualiseState();
         std::iter_swap(it, tree.end() - 1);
         tree.erase(tree.end() - 1);
     }
+#ifdef TRACE
     else
     {
         fprintf(stderr, "LibGit2::%s:%d path %s not present in list. statusFlags  %u\n", __FUNCTION__, __LINE__, path, statusFlags);
     }
-    return 0;
+#endif
+    return obj->IsAborted()? 1 : 0;
 }
 
 void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> projectFiles) const
@@ -240,15 +244,13 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
     {
         wxStopWatch sw;
         GitRepo gitRepo(m_VcsRootDir);
-        fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s projectFiles size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
-                projectFiles.size());
         if (gitRepo.m_repo)
         {
-            std::pair < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>* > param;
-            param.first = &m_VcsRootDir;
-            param.second = &projectFiles;
-
+            std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> param;
+            param = make_tuple(&m_VcsRootDir, &projectFiles, this);
+#ifdef TRACE
             fprintf(stderr, "LibGit2::%s:%d before git_status_foreach. vcsRootDir %p tree %p\n", __FUNCTION__, __LINE__, param.first, param.second);
+#endif
             git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
             for (auto &pf : projectFiles)
             {
@@ -256,9 +258,9 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
                 pf->VisualiseState();
             }
         }
-        fprintf(stderr, "LibGit2::LibGit2UpdateFullOp Async Update:%d Exit. Took %ld ms\n", __LINE__, sw.Time());
+        fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Async Update:%d Exit. Took %ld ms\n", this, __LINE__, sw.Time());
     };
-    executionThread = std::thread(executionFn, std::move(projectFiles));
+    m_executionThread = std::thread(executionFn, std::move(projectFiles));
 }
 
 /***********************************************************************

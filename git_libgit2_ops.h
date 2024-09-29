@@ -3,6 +3,7 @@
 
 #include "VcsFileOp.h"
 #include "VcsTreeItem.h"
+#include <atomic>
 #include <thread>
 
 class LibGit2;
@@ -89,10 +90,13 @@ class LibGit2UpdateFullOp : public LibGit2UpdateOp
 {
   public:
     LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils);
+    bool IsAborted() const{ return m_abort;};
+    ~LibGit2UpdateFullOp(){ m_abort = true; m_executionThread.join();}
 
   private:
     void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) const override;
-    mutable std::thread executionThread;
+    mutable std::thread m_executionThread;
+    std::atomic_bool m_abort = {false};
 };
 
 #endif // LibGit2_OPS_H
