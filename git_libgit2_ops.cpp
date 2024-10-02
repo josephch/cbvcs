@@ -268,7 +268,7 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
     if (m_executionThread.joinable())
         m_executionThread.join();
     m_abort = false;
-    m_executionThread = std::thread(executionFn, projectFiles);
+    m_executionThread = std::thread(executionFn, std::move(projectFiles));;
 }
 
 void LibGit2UpdateFullOp::UpdateStates()
