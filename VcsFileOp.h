@@ -41,7 +41,7 @@ class VcsFileOp
         ICommandExecuter& m_ShellUtils;
 
     private:
-        virtual void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) const = 0;
+        virtual void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) = 0;
 };
 
 #endif // VCSFILEOP_H

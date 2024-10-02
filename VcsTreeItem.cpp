@@ -23,12 +23,13 @@ VcsTreeItem::VcsTreeItem(wxString Name, ItemState State) :
     m_Name(Name),
     m_State(State)
 {
-    //ctor
+     fprintf(stderr, "VcsTreeItem::%s:%d[%p]\n", __FUNCTION__, __LINE__, this);
 }
 
 VcsTreeItem::~VcsTreeItem()
 {
-    //dtor
+     fprintf(stderr, "VcsTreeItem::%s:%d[%p]\n", __FUNCTION__, __LINE__, this);
+
 }
 
 const wxString VcsTreeItem::GetRelativeName(const wxString& RootPath) const
