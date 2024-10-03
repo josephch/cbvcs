@@ -13,5 +13,4 @@ CBVCS integrates version control systems to CodeBlocks file manager. CBVCS suppo
 This fork of CBVCS uses libgit2 to do git operations. Details of installation and usage of libgit2 is avaliable [here]( https://libgit2.org/docs/guides/build-and-link/)
 
 ## Known issues
-1. For large projects, load time is high. For eg. codeblocks project open spends more than  1 sec to get git status on my PC
-2. After editing and saving a file, status is not updated as it is overwritten by the SDK
+1. After editing and saving a file, status is not updated as it is overwritten by the SDK
