@@ -3,29 +3,6 @@ cmake_minimum_required(VERSION 3.24.0)
 
 project("unix_libgit2")
 set(TARGET_OUTPUTNAME "cbvcs")
-# Target Title: unix_libgit2
-# Target targetOutPutFullName: libcbvcs.so
-# Target prefix_auto: True(1)
-# Target extension_auto: True(1)
-# Project Compiler: gcc
-# Target Compiler:  gcc
-# Project CommonTopLevelPath:  /home/christo/codeblocks/cbvcs/
-# Target type: ttDynamicLib - DLL
-# Target detected root directory:  ${PROJECT_TOP_LEVEL_PATH_LINUX}VcsProject.cpp
-# Target Options:
-#                 projectCompilerOptionsRelation: Uses parent options first then target options. Type 3
-#                 projectLinkerOptionsRelation: Uses parent options first then target options. Type 3
-#                 projectIncludeDirsRelation: Uses parent options first then target options. Type 3
-#                 projectLibDirsRelation: Uses parent options first then target options. Type 3
-#                 projectResourceIncludeDirsRelation: Uses parent options first then target options. Type 3
-
-# -------------------------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------------------------
-
-cmake_minimum_required(VERSION 3.24.0) 
-# -------------------------------------------------------------------------------------------------
-
 # Include CMakePrintHelpers module:
 include(CMakePrintHelpers)
 
@@ -64,7 +41,6 @@ FILE(GLOB SOURCE_FILES
             "git_libgit2.cpp"
             "git_libgit2_ops.cpp"
             "shellutilimpl.cpp"
-            "treeitemvector.cpp"
             "vcsfactory.cpp"
             "vcsprojecttracker.cpp"
             "vcstrackermap.cpp"
@@ -80,7 +56,6 @@ FILE(GLOB SOURCE_FILES
             "git_libgit2.h"
             "git_libgit2_ops.h"
             "shellutilimpl.h"
-            "treeitemvector.h"
             "vcsfactory.h"
             "vcsprojecttracker.h"
             "vcstrackermap.h"
@@ -90,8 +65,8 @@ FILE(GLOB SOURCE_FILES
 add_library(${TARGET_OUTPUTNAME} SHARED ${SOURCE_FILES})
 
 # Set the target output directory:
-set_target_properties(${TARGET_OUTPUTNAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
-set_target_properties(${TARGET_OUTPUTNAME} PROPERTIES  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_target_properties(${TARGET_OUTPUTNAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/")
+set_target_properties(${TARGET_OUTPUTNAME} PROPERTIES  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/")
 
 unset(SOURCE_FILES)
 
@@ -104,8 +79,6 @@ list(APPEND LINKER_OPTIONS_LIST "${wxWidgets_LIBRARIES}")
 list(APPEND LINKER_OPTIONS_LIST "${LIBGIT2_LINK_LIBRARIES}")
 target_link_libraries(${TARGET_OUTPUTNAME} PRIVATE ${LINKER_OPTIONS_LIST})
 unset(LINKER_OPTIONS_LIST)
-
-# -------------------------------------------------------------------------------------------------
 
 # Target after commands:
 # zip -j9 cbvcs.zip manifest.xml
