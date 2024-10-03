@@ -26,7 +26,6 @@
 #include <editormanager.h>
 #include <git2.h>
 #include <manager.h>
-#include <projectmanager.h>
 
 class GitRepo
 {
@@ -205,7 +204,9 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeI
 
 LibGit2UpdateFullOp::LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2UpdateOp(vcs, vcsRootDir, shellUtils)
 {
+#ifdef TRACE
     fprintf(stderr, "LibGit2UpdateFullOp::%s:%d [%p]\n", __FUNCTION__, __LINE__, this);
+#endif
 }
 
 static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *payload)
@@ -256,12 +257,10 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
             git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
             for (auto &pf : projectFiles)
             {
-                //pf->SetState(Item_UpToDate);
                 m_pendingStates.emplace_back(pf, Item_UpToDate);
             }
         }
         fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Async git state Update:%d Exit. Took %ld ms\n", this, __LINE__, sw.Time());
-        //ProjectManager::Get()->CallAfter(&LibGit2UpdateFullOp::UpdateStates);
         CallAfter(&LibGit2UpdateFullOp::UpdateStates);
     };
     m_abort = true;
@@ -273,14 +272,18 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
 
 void LibGit2UpdateFullOp::UpdateStates()
 {
+#ifdef TRACE
     wxStopWatch sw;
+#endif
     for (auto &item : m_pendingStates)
     {
         VcsTreeItem *pf = item.m_treeItem.get();
         pf->SetState(item.m_State);
         pf->VisualiseState();
     }
+#ifdef TRACE
     fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Update:%d Exit. SetState of %zu items took %ld ms\n", this, __LINE__, m_pendingStates.size(), sw.Time());
+#endif
 }
 
 /***********************************************************************
