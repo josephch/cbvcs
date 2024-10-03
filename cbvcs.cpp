@@ -27,10 +27,10 @@
 #include "cbvcs.h"
 #include "IVersionControlSystem.h"
 #include "VcsFileItem.h"
-#include "treeitemvector.h"
 #include "vcsprojecttracker.h"
 #include "vcstrackermap.h"
 #include "shellutilimpl.h"
+#include "VcsProject.h"
 
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
@@ -266,17 +266,17 @@ vcsProjectTracker* cbvcs::GetVcsInstance(const FileTreeData *data)
     return m_ProjectTrackers.GetTracker(prj_file);
 }
 
-void cbvcs::GetFileItem(TreeItemVector& treeVector, const wxTreeCtrl& tree, const wxTreeItemId& treeItem)
+void cbvcs::GetFileItem(std::vector<std::shared_ptr<VcsTreeItem>>& treeVector, const wxTreeCtrl& tree, const wxTreeItemId& treeItem)
 {
     FileTreeData* ftd = static_cast<FileTreeData*>( tree.GetItemData( treeItem ) );
 
     if(ftd->GetKind() == FileTreeData::ftdkFile)
     {
-        treeVector.CreateFileItem(ftd->GetProjectFile());
+        treeVector.emplace_back(new VcsFileItem(ftd->GetProjectFile()));
     }
 }
 
-void cbvcs::GetDescendents(TreeItemVector& treeVector, const wxTreeCtrl& tree, const wxTreeItemId& start)
+void cbvcs::GetDescendents( std::vector<std::shared_ptr<VcsTreeItem>>& treeVector, const wxTreeCtrl& tree, const wxTreeItemId& start)
 {
     wxTreeItemIdValue cookie;
 
@@ -327,8 +327,8 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
     {
         return;
     }
-    TreeItemVector files;
 
+    std::vector<std::shared_ptr<VcsTreeItem>> files;
     for (size_t i = 0; i < selectionSize; i++)
     {
         const wxTreeItemId& selItem = treeItems[i];
@@ -349,7 +349,7 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
         const FileTreeData::FileTreeDataKind fileTreeDataKind = fileTreeData->GetKind();
         if(fileTreeDataKind == FileTreeData::ftdkFile)
         {
-            files.CreateFileItem(fileTreeData->GetProjectFile());
+            files.emplace_back(new VcsFileItem(fileTreeData->GetProjectFile()));
         }
         else if(fileTreeDataKind == FileTreeData::ftdkFolder)
         {
@@ -358,11 +358,11 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
         else if(fileTreeDataKind == FileTreeData::ftdkProject)
         {
             cbProject* prj = fileTreeData->GetProject();
-            files.CreateProjectItem(prj->GetFilename(), prjTracker->GetProjectState());
+            files.emplace_back(new VcsProject(prj->GetFilename(), prjTracker->GetProjectState()));
             GetDescendents(files, *tree, selItem);
             //special case. On project refresh use update all
             IVersionControlSystem& vcs = selectedProjectTracker->GetVcs();
-            vcs.UpdateFullOp->execute(files.GetVector());
+            vcs.UpdateFullOp->execute(std::move(files));
             return;
         }
     }
@@ -377,24 +377,24 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
     switch (action)
     {
     case VcsAction_Add:
-        vcs.AddOp->execute(files.GetVector());
+        vcs.AddOp->execute(files);
         break;
     case VcsAction_Remove:
-        vcs.RemoveOp->execute(files.GetVector());
+        vcs.RemoveOp->execute(files);
         break;
     case VcsAction_Commit:
-        vcs.CommitOp->execute(files.GetVector());
+        vcs.CommitOp->execute(files);
         break;
     case VcsAction_Diff:
-        vcs.DiffOp->execute(files.GetVector());
+        vcs.DiffOp->execute(files);
         break;
     case VcsAction_Revert:
-        vcs.RevertOp->execute(files.GetVector());
+        vcs.RevertOp->execute(files);
         break;
     case VcsAction_Refresh:
         break;
     }
-    vcs.UpdateOp->execute(files.GetVector());
+    vcs.UpdateOp->execute(std::move( files));
 }
 
 void cbvcs::OnAdd( wxCommandEvent& /*event*/ )
@@ -454,16 +454,13 @@ void cbvcs::OnProjectOpen( CodeBlocksEvent& event )
 
     IVersionControlSystem& vcs = prjTracker->GetVcs();
 
-    TreeItemVector files;
-    files.CreateProjectItem(prjFilename, prjTracker->GetProjectState());
-
+    std::vector<std::shared_ptr<VcsTreeItem>>files;
     for ( int i = 0; i < prj->GetFilesCount(); ++i )
     {
         ProjectFile* pf = prj->GetFile( i );
-        files.CreateFileItem(pf);
+        files.emplace_back(new VcsFileItem(pf));
     }
-
-    vcs.UpdateFullOp->execute(files.GetVector());
+    vcs.UpdateFullOp->execute( std::move( files));
 }
 
 void cbvcs::OnProjectClose( CodeBlocksEvent& event )
@@ -497,9 +494,10 @@ void cbvcs::OnProjectSave( CodeBlocksEvent& event )
         // uncontrolled project
         return;
     }
-    TreeItemVector files;
-    files.CreateProjectItem(prjFilename, prjTracker->GetProjectState());
-    prjTracker->GetVcs().UpdateOp->execute(files.GetVector());
+
+    std::vector<std::shared_ptr<VcsTreeItem>>files;
+    files.emplace_back(new VcsProject(prjFilename, prjTracker->GetProjectState()));
+    prjTracker->GetVcs().UpdateOp->execute( std::move( files));
 }
 
 void cbvcs::OnEditorSave( CodeBlocksEvent& event )
@@ -537,9 +535,7 @@ void cbvcs::OnEditorSave( CodeBlocksEvent& event )
         return;
     }
 
-    std::vector<VcsTreeItem*>UpdateList;
-
-    VcsFileItem vcsItem(SavedFile);
-    UpdateList.push_back(&vcsItem);
-    prjTracker->GetVcs().UpdateOp->execute(UpdateList);
+    std::vector<std::shared_ptr<VcsTreeItem>>UpdateList;
+    UpdateList.emplace_back(new VcsFileItem(SavedFile));
+    prjTracker->GetVcs().UpdateOp->execute(std::move( UpdateList));
 }

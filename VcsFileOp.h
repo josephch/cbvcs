@@ -18,6 +18,7 @@
 #ifndef VCSFILEOP_H
 #define VCSFILEOP_H
 
+#include <memory>
 #include <vector>
 #include <wx/string.h>
 #include "icommandexecuter.h"
@@ -33,14 +34,14 @@ class VcsFileOp
             {}
 
         virtual ~VcsFileOp() {}
-        void execute(std::vector<VcsTreeItem*>&);
+        void execute(std::vector<std::shared_ptr<VcsTreeItem>>);
 
     protected:
         const wxString& m_VcsRootDir;
         ICommandExecuter& m_ShellUtils;
 
     private:
-        virtual void ExecuteImplementation(std::vector<VcsTreeItem*>&) const = 0;
+        virtual void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) = 0;
 };
 
 #endif // VCSFILEOP_H

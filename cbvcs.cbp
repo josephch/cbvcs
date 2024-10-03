@@ -115,8 +115,6 @@
 		<Unit filename="manifest.xml" />
 		<Unit filename="shellutilimpl.cpp" />
 		<Unit filename="shellutilimpl.h" />
-		<Unit filename="treeitemvector.cpp" />
-		<Unit filename="treeitemvector.h" />
 		<Unit filename="vcsfactory.cpp" />
 		<Unit filename="vcsfactory.h" />
 		<Unit filename="vcsprojecttracker.cpp" />
