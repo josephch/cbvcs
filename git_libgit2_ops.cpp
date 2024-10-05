@@ -209,25 +209,35 @@ LibGit2UpdateFullOp::LibGit2UpdateFullOp(LibGit2 &vcs, const wxString &vcsRootDi
 #endif
 }
 
+struct VcsTreeItemAndRelativePath
+{
+    std::shared_ptr<VcsTreeItem> item;
+    wxString relativeName;
+    VcsTreeItemAndRelativePath(std::shared_ptr<VcsTreeItem> item, wxString relativeName)
+    {
+        this->item = item;
+        this->relativeName = relativeName;
+    }
+};
+
 static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *payload)
 {
-    std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> *param = (std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> *)payload;
-    const wxString& vcsRootDir = *std::get<0>(*param);
-    std::vector<std::shared_ptr<VcsTreeItem>>& tree = *std::get<1>(*param);
-    const LibGit2UpdateFullOp* obj  = std::get<2>(*param);
+    std::tuple < std::vector<VcsTreeItemAndRelativePath>*, const LibGit2UpdateFullOp*> *param = (std::tuple < std::vector<VcsTreeItemAndRelativePath>*, const LibGit2UpdateFullOp*> *)payload;
+    std::vector<VcsTreeItemAndRelativePath>& tree = *std::get<0>(*param);
+    const LibGit2UpdateFullOp* obj  = std::get<1>(*param);
 
 #ifdef TRACE
     fprintf(stderr, "LibGit2::%s:%d vcsRootDir %s path %s\n", __FUNCTION__, __LINE__, vcsRootDir.ToUTF8().data(), path);
 #endif
     wxString wxPath = wxString(path);
-    auto it = std::find_if(tree.begin(), tree.end(), [&wxPath, &vcsRootDir](const std::shared_ptr<VcsTreeItem> &item)
+    auto it = std::find_if(tree.begin(), tree.end(), [&wxPath](const VcsTreeItemAndRelativePath &item)
                                                     {
-                                                        return (item->GetRelativeName(vcsRootDir) == wxPath);
+                                                        return (item.relativeName == wxPath);
                                                     });
     if (it != tree.end())
     {
         fprintf(stderr, "LibGit2::%s:%d path %s present in list. statusFlags  0x%x\n", __FUNCTION__, __LINE__, path, statusFlags);
-        obj->m_pendingStates.emplace_back(std::move(*it), getItemStateFromLibGit2StatusFlag(statusFlags));
+        obj->m_pendingStates.emplace_back(std::move(it->item), getItemStateFromLibGit2StatusFlag(statusFlags));
         std::iter_swap(it, tree.end() - 1);
         tree.erase(tree.end() - 1);
     }
@@ -250,15 +260,21 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
         GitRepo gitRepo(m_VcsRootDir);
         if (gitRepo.m_repo)
         {
-            std::tuple < const wxString*, std::vector<std::shared_ptr<VcsTreeItem>>*, const LibGit2UpdateFullOp*> param;
-            param = make_tuple(&m_VcsRootDir, &projectFiles, this);
+            std::vector <VcsTreeItemAndRelativePath> projectFilesAndRelativePaths;
+            projectFilesAndRelativePaths.reserve(projectFiles.size());
+            for (std::shared_ptr<VcsTreeItem>& item : projectFiles)
+            {
+                projectFilesAndRelativePaths.emplace_back(std::move(item), item->GetRelativeName(m_VcsRootDir));
+            }
+            std::tuple < std::vector<VcsTreeItemAndRelativePath>*, const LibGit2UpdateFullOp*> param;
+            param = make_tuple(&projectFilesAndRelativePaths, this);
 #ifdef TRACE
             fprintf(stderr, "LibGit2::%s:%d before git_status_foreach. vcsRootDir %p tree %p\n", __FUNCTION__, __LINE__, param.first, param.second);
 #endif
             git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
-            for (auto &pf : projectFiles)
+            for (auto &pf : projectFilesAndRelativePaths)
             {
-                m_pendingStates.emplace_back(pf, Item_UpToDate);
+                m_pendingStates.emplace_back(std::move(pf.item), Item_UpToDate);
             }
         }
         fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Async git state Update:%d Exit. Took %ld ms\n", this, __LINE__, sw.Time());
