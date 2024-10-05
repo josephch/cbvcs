@@ -219,9 +219,10 @@ static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *p
 #ifdef TRACE
     fprintf(stderr, "LibGit2::%s:%d vcsRootDir %s path %s\n", __FUNCTION__, __LINE__, vcsRootDir.ToUTF8().data(), path);
 #endif
-    auto it = std::find_if(tree.begin(), tree.end(), [path, &vcsRootDir](const std::shared_ptr<VcsTreeItem> &item)
+    wxString wxPath = wxString(path);
+    auto it = std::find_if(tree.begin(), tree.end(), [&wxPath, &vcsRootDir](const std::shared_ptr<VcsTreeItem> &item)
                                                     {
-                                                        return (item->GetRelativeName(vcsRootDir) == path);
+                                                        return (item->GetRelativeName(vcsRootDir) == wxPath);
                                                     });
     if (it != tree.end())
     {
