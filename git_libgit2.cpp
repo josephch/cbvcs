@@ -127,20 +127,21 @@ wxString LibGit2::QueryRoot(const char *gitWorkDirInProject)
             bool cont = dir.GetFirst(&subDirPath, wxEmptyString, wxDIR_DIRS);
             while (cont)
             {
-                if (0 == git_repository_open(&repo, subDirPath))
+                wxString subDirFullPath = projectPath + wxFILE_SEP_PATH + subDirPath;
+                if (0 == git_repository_open(&repo, subDirFullPath))
                 {
-                    fprintf(stderr, "LibGit2::%s:%d subDirPath %s is workdir\n", __FUNCTION__, __LINE__, subDirPath.ToUTF8().data());
+                    fprintf(stderr, "LibGit2::%s:%d subDirFullPath %s is workdir\n", __FUNCTION__, __LINE__, subDirFullPath.ToUTF8().data());
                     ret = true;
                     if (workDirectory)
                     {
-                        *workDirectory = projectPath + wxFILE_SEP_PATH + subDirPath;
+                        *workDirectory = std::move(subDirFullPath);
                     }
                     git_repository_free(repo);
                     break;
                 }
                 else
                 {
-                    fprintf(stderr, "LibGit2::%s:%d subDirPath %s not workdir\n", __FUNCTION__, __LINE__, subDirPath.ToUTF8().data());
+                    fprintf(stderr, "LibGit2::%s:%d subDirFullPath %s not workdir\n", __FUNCTION__, __LINE__, subDirFullPath.ToUTF8().data());
                 }
                 cont = dir.GetNext(&subDirPath);
             }
