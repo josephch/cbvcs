@@ -31,7 +31,7 @@ VcsTreeItem::~VcsTreeItem()
     //dtor
 }
 
-const wxString VcsTreeItem::GetRelativeName(const wxString& RootPath) const
+wxString VcsTreeItem::GetRelativeName(const wxString& RootPath) const
 {
     wxString relativeName;
 
