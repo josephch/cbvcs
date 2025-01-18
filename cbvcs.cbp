@@ -112,6 +112,7 @@
 		<Unit filename="git_libgit2.h" />
 		<Unit filename="git_libgit2_ops.cpp" />
 		<Unit filename="git_libgit2_ops.h" />
+		<Unit filename="icommandexecuter.h" />
 		<Unit filename="manifest.xml" />
 		<Unit filename="shellutilimpl.cpp" />
 		<Unit filename="shellutilimpl.h" />

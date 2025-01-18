@@ -152,7 +152,7 @@ class cbvcs : public cbPlugin
         void OnRemove( wxCommandEvent& event );
         void OnCommit( wxCommandEvent& event );
         void OnDiff( wxCommandEvent& event );
-        void OnRevert( wxCommandEvent& event );
+        void OnRestore( wxCommandEvent& event );
         void OnRefresh( wxCommandEvent& event );
         void OnProjectOpen( CodeBlocksEvent& );
         void OnProjectSave( CodeBlocksEvent& );

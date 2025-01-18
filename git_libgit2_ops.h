@@ -77,10 +77,10 @@ class LibGit2RemoveOp : public LibGit2_Op
     virtual void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>);
 };
 
-class LibGit2RevertOp : public LibGit2_Op
+class LibGit2RestoreOp : public LibGit2_Op
 {
   public:
-    LibGit2RevertOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
+    LibGit2RestoreOp(LibGit2 &vcs, const wxString &vcsRootDir, ICommandExecuter &shellUtils) : LibGit2_Op(vcs, vcsRootDir, shellUtils) {}
 
   private:
     virtual void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>);

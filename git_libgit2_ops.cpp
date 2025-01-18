@@ -568,12 +568,12 @@ void LibGit2DiffOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeIte
 }
 
 /***********************************************************************
- *  Method: LibGit2RevertOp::execute
+ *  Method: LibGit2RestoreOp::execute
  *  Params: std::vector<VcsTreeItem *> &
  * Returns: void
  * Effects:
  ***********************************************************************/
-void LibGit2RevertOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList)
+void LibGit2RestoreOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> pathList)
 {
     GitRepo gitRepo(m_VcsRootDir);
     if (!gitRepo.m_repo)

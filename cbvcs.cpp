@@ -41,7 +41,7 @@ const int idAdd = wxNewId();
 const int idRemove = wxNewId();
 const int idCommit = wxNewId();
 const int idDiff = wxNewId();
-const int idRevert = wxNewId();
+const int idRestore = wxNewId();
 const int idRefresh = wxNewId();
 #if 0
 const int idBranchCreate = wxNewId();
@@ -60,7 +60,7 @@ BEGIN_EVENT_TABLE(cbvcs, cbPlugin)
     EVT_MENU( idRemove, cbvcs::OnRemove )
     EVT_MENU( idCommit, cbvcs::OnCommit )
     EVT_MENU( idDiff, cbvcs::OnDiff )
-    EVT_MENU( idRevert, cbvcs::OnRevert )
+    EVT_MENU( idRestore, cbvcs::OnRestore )
     EVT_MENU( idRefresh, cbvcs::OnRefresh )
 END_EVENT_TABLE()
 
@@ -147,7 +147,7 @@ void cbvcs::CreateProjectMenu(wxMenu* menu, const FileTreeData* data)
 
     VcsMenu->Append(idCommit, _("Commit"), _("Commit this file"));
     VcsMenu->Append(idDiff, _("Diff"), _("View diff"));
-    VcsMenu->Append(idRevert, _("Revert"), _("Revert changes"));
+    VcsMenu->Append(idRestore, _("Restore"), _("Restore changes"));
     VcsMenu->Append(idRefresh, _("Refresh"), _("Refresh VCS status"));
 
 #if 0
@@ -165,7 +165,7 @@ void cbvcs::CreateFolderMenu(wxMenu* menu)
     VcsMenu->Append(idRemove, _("Remove"), _("Remove this file"));
     VcsMenu->Append(idCommit, _("Commit"), _("Commit this file"));
     VcsMenu->Append(idDiff, _("Diff"), _("View diff"));
-    VcsMenu->Append(idRevert, _("Revert"), _("Revert changes"));
+    VcsMenu->Append(idRestore, _("Restore"), _("Restore changes"));
     VcsMenu->Append(idRefresh, _("Refresh"), _("Refresh VCS status"));
 
     menu->AppendSubMenu(VcsMenu, _("Git"));
@@ -190,7 +190,7 @@ void cbvcs::CreateFileMenu(wxMenu* menu, const FileTreeData* data)
        || file->GetFileState() == (FileVisualState)Item_Removed)
     {
         VcsMenu->Append(idCommit, _("Commit"), _("Commit this file"));
-        VcsMenu->Append(idRevert, _("Revert"), _("Revert changes"));
+        VcsMenu->Append(idRestore, _("Restore"), _("Restore changes"));
     }
     else if(file->GetFileState() == (FileVisualState)Item_UpToDate
        || file->GetFileState() == (FileVisualState)Item_Modified)
@@ -200,14 +200,14 @@ void cbvcs::CreateFileMenu(wxMenu* menu, const FileTreeData* data)
         if(file->GetFileState() == (FileVisualState)Item_Modified)
         {
             VcsMenu->Append(idCommit, _("Commit"), _("Commit this file"));
-            VcsMenu->Append(idRevert, _("Revert"), _("Revert changes"));
+            VcsMenu->Append(idRestore, _("Restore"), _("Restore changes"));
             VcsMenu->Append(idDiff, _("Diff"), _("View diff"));
         }
     }
     else if(file->GetFileState() == (FileVisualState)Item_Missing)
     {
         VcsMenu->Append(idRemove, _("Remove"), _("Remove this file"));
-        VcsMenu->Append(idRevert, _("Revert"), _("Revert changes"));
+        VcsMenu->Append(idRestore, _("Restore"), _("Restore changes"));
     }
     VcsMenu->Append(idRefresh, _("Refresh"), _("Refresh VCS status"));
 
@@ -306,7 +306,7 @@ enum  cbvcs::VcsAction : unsigned int
     VcsAction_Remove,
     VcsAction_Commit,
     VcsAction_Diff,
-    VcsAction_Revert,
+    VcsAction_Restore,
     VcsAction_Refresh,
 };
 
@@ -388,8 +388,8 @@ void cbvcs::PerformGroupActionOnSelection(VcsAction action)
     case VcsAction_Diff:
         vcs.DiffOp->execute(files);
         break;
-    case VcsAction_Revert:
-        vcs.RevertOp->execute(files);
+    case VcsAction_Restore:
+        vcs.RestoreOp->execute(files);
         break;
     case VcsAction_Refresh:
         break;
@@ -417,9 +417,9 @@ void cbvcs::OnDiff( wxCommandEvent& /*event*/ )
     PerformGroupActionOnSelection(VcsAction_Diff);
 }
 
-void cbvcs::OnRevert( wxCommandEvent& /*event*/ )
+void cbvcs::OnRestore( wxCommandEvent& /*event*/ )
 {
-    PerformGroupActionOnSelection(VcsAction_Revert);
+    PerformGroupActionOnSelection(VcsAction_Restore);
 }
 
 void cbvcs::OnRefresh( wxCommandEvent& /*event*/ )
