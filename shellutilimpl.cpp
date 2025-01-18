@@ -42,11 +42,6 @@ bool ShellUtilImpl::execute(const wxString& shellCommand,
     return true;
 }
 
-bool ShellUtilImpl::FileExists(const wxString& filePath) const
-{
-    return true;
-}
-
 void ShellUtilImpl::pushd(const wxString& newDir)
 {
     m_Cwd = wxGetCwd();

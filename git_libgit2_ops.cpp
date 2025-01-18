@@ -182,7 +182,7 @@ void LibGit2UpdateOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeI
                 const git_error *e = git_error_last();
                 fprintf(stderr, "LibGit2::%s:%d git_status_file failed for file %s : %d/%d: %s\n", __FUNCTION__, __LINE__,
                         relativeFilename.ToUTF8().data(), error, e->klass, e->message);
-                if (m_ShellUtils.FileExists(relativeFilename))
+                if (wxFileExists(relativeFilename))
                 {
                     pf->SetState(Item_UpToDate);
                 }
@@ -271,10 +271,24 @@ void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsT
 #ifdef TRACE
             fprintf(stderr, "LibGit2::%s:%d before git_status_foreach. workDir %s\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data());
 #endif
-            git_status_foreach(gitRepo.m_repo, git_status_cb_fn, &param);
+            git_status_options opts = GIT_STATUS_OPTIONS_INIT;
+            opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
+            opts.flags = GIT_STATUS_OPT_INCLUDE_IGNORED | GIT_STATUS_OPT_INCLUDE_UNTRACKED | GIT_STATUS_OPT_INCLUDE_UNMODIFIED;
+            git_status_foreach_ext( gitRepo.m_repo, &opts, git_status_cb_fn, &param);
             for (auto &pf : projectFilesAndRelativePaths)
             {
-                m_pendingStates.emplace_back(std::move(pf.item), Item_UpToDate);
+                ItemState itemState;
+                wxString fileName = m_VcsRootDir + wxFileName::GetPathSeparator() + pf.relativeName;
+                if (wxFileExists(fileName))
+                {
+                    itemState = Item_Untracked;
+                }
+                else
+                {
+                    fprintf(stderr, "LibGit2::::%s:%d[%p] item %s do not exit\n", __FUNCTION__, __LINE__, this, fileName.ToUTF8().data());
+                    itemState = Item_UntrackedMissing;
+                }
+                m_pendingStates.emplace_back(std::move(pf.item), itemState);
             }
         }
         fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Async git state Update:%d Exit. Took %ld ms\n", this, __LINE__, sw.Time());

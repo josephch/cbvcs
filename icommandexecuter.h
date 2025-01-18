@@ -16,7 +16,6 @@ class ICommandExecuter : private CopyProtector
         virtual bool execute(const wxString& shellCommand,
                              wxArrayString& outCapture,
                              wxArrayString&  errCapture) const = 0;
-        virtual bool FileExists(const wxString& filePath) const = 0;
         virtual void pushd(const wxString& newDir) = 0;
         virtual void popd() = 0;
 

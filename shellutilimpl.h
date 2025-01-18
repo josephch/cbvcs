@@ -15,7 +15,6 @@ class ShellUtilImpl : public ICommandExecuter
         virtual bool execute(const wxString& shellCommand,
                              wxArrayString& outCapture,
                              wxArrayString&  errCapture) const;
-        virtual bool FileExists(const wxString& filePath) const;
         virtual void pushd(const wxString& newDir);
         virtual void popd();
     protected:
