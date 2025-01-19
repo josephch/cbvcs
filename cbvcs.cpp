@@ -74,15 +74,10 @@ cbvcs::cbvcs()
     {
         NotifyMissingFile(_T("cbvcs.zip"));
     }
-
-    m_ShellUtils = new ShellUtilImpl;
 }
 
 // destructor
-cbvcs::~cbvcs()
-// TODO (dushara#1#): Delete all vcs instances{
-    delete m_ShellUtils;
-}
+cbvcs::~cbvcs() = default;
 
 void cbvcs::OnAttach()
 {
@@ -438,7 +433,7 @@ void cbvcs::OnProjectOpen( CodeBlocksEvent& event )
 
     const wxString prjFilename = prj->GetFilename();
 
-    if(!m_ProjectTrackers.CreateTracker(prjFilename, *m_ShellUtils))
+    if(!m_ProjectTrackers.CreateTracker(prjFilename, m_ShellUtils))
     {
         return;
     }

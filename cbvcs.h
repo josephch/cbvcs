@@ -20,6 +20,7 @@
 #define CBVCS_H_INCLUDED
 
 // For compilers that support precompilation, includes <wx/wx.h>
+#include "shellutilimpl.h"
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -138,7 +139,7 @@ class cbvcs : public cbPlugin
         DECLARE_EVENT_TABLE();
 
         VcsTrackerMap m_ProjectTrackers;
-        class ShellUtilImpl* m_ShellUtils;
+        ShellUtilImpl m_ShellUtils;
 
         vcsProjectTracker* GetVcsInstance(const FileTreeData*);
         void GetFileItem(std::vector<std::shared_ptr<VcsTreeItem>>& treeVector, const wxTreeCtrl&, const wxTreeItemId&);
