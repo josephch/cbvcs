@@ -87,7 +87,7 @@ void cbvcs::OnAttach()
     // You should check for it in other functions, because if it
     // is FALSE, it means that the application did *not* "load"
     // (see: does not need) this plugin...
-    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_OPEN, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectOpen));
+    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_ACTIVATE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectActivate));
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_CLOSE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectClose));
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectSave));
     Manager::Get()->RegisterEventSink(cbEVT_EDITOR_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorUpdate));
@@ -423,7 +423,7 @@ void cbvcs::OnRefresh( wxCommandEvent& /*event*/ )
     PerformGroupActionOnSelection(VcsAction_Refresh);
 }
 
-void cbvcs::OnProjectOpen( CodeBlocksEvent& event )
+void cbvcs::OnProjectActivate(CodeBlocksEvent& event)
 {
     cbProject* prj = event.GetProject();
 
