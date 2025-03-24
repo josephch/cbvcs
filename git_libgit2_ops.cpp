@@ -250,6 +250,13 @@ static int git_status_cb_fn (const char *path, unsigned int statusFlags, void *p
     return obj->IsAborted()? 1 : 0;
 }
 
+void LibGit2UpdateFullOp::stopExecution()
+{
+    m_abort = true;
+    if (m_executionThread.joinable())
+        m_executionThread.join();
+}
+
 void LibGit2UpdateFullOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>> projectFiles)
 {
     fprintf(stderr, "LibGit2::%s:%d Enter. m_VcsRootDir %s proj_files size %zu\n", __FUNCTION__, __LINE__, m_VcsRootDir.ToUTF8().data(),
@@ -311,6 +318,11 @@ void LibGit2UpdateFullOp::UpdateStates()
         VcsTreeItem *pf = item.m_treeItem.get();
         pf->SetState(item.m_State);
         pf->VisualiseState();
+        if (m_abort)
+        {
+            fprintf(stderr, "LibGit2::%s:%d break as aborted\n", __FUNCTION__, __LINE__);
+            break;
+        }
     }
 #ifdef TRACE
     fprintf(stderr, "LibGit2::LibGit2UpdateFullOp[%p] Update:%d Exit. SetState of %zu items took %ld ms\n", this, __LINE__, m_pendingStates.size(), sw.Time());

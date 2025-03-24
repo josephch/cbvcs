@@ -434,18 +434,15 @@ void cbvcs::OnProjectActivate(CodeBlocksEvent& event)
 
     const wxString prjFilename = prj->GetFilename();
 
-    if(!m_ProjectTrackers.CreateTracker(prjFilename, m_ShellUtils))
-    {
-        return;
-    }
-
     vcsProjectTracker* prjTracker;
     prjTracker = m_ProjectTrackers.GetTracker(prjFilename);
-
     if(!prjTracker)
     {
-        // Impossible really cos we just created it!
-        return;
+        if (!m_ProjectTrackers.CreateTracker(prjFilename, m_ShellUtils))
+        {
+            return;
+        }
+        prjTracker = m_ProjectTrackers.GetTracker(prjFilename);
     }
 
     IVersionControlSystem& vcs = prjTracker->GetVcs();
@@ -465,11 +462,22 @@ void cbvcs::OnProjectClose( CodeBlocksEvent& event )
 
     if(!prj)
     {
+        fprintf(stderr, "%s:%d : project not available\n", __FUNCTION__, __LINE__);
         return;
     }
 
     const wxString prj_file = prj->GetFilename();
-    m_ProjectTrackers.RemoveTracker(prj_file);
+    vcsProjectTracker* prjTracker = m_ProjectTrackers.GetTracker(prj_file);
+    if (prjTracker)
+    {
+        IVersionControlSystem& vcs = prjTracker->GetVcs();
+        vcs.UpdateFullOp->stopExecution();
+        m_ProjectTrackers.RemoveTracker(prj_file);
+    }
+    else
+    {
+        fprintf(stderr, "%s:%d : prjTracker not available for project %s\n", __FUNCTION__, __LINE__, prj_file.ToUTF8().data());
+    }
 }
 
 void cbvcs::OnProjectSave( CodeBlocksEvent& event )

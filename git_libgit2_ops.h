@@ -104,6 +104,7 @@ class LibGit2UpdateFullOp : public LibGit2UpdateOp, public wxEvtHandler
         ItemStateValue(std::shared_ptr<VcsTreeItem> treeItem, ItemState state) : m_treeItem(treeItem), m_State(state){}
     };
     mutable std::vector<ItemStateValue> m_pendingStates;
+    void stopExecution() override;
 
   private:
     void ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeItem>>) override;
