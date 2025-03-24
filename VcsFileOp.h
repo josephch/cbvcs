@@ -35,6 +35,7 @@ class VcsFileOp
 
         virtual ~VcsFileOp() {}
         void execute(std::vector<std::shared_ptr<VcsTreeItem>>);
+        virtual void stopExecution() {}
 
     protected:
         const wxString& m_VcsRootDir;
