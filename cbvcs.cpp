@@ -90,7 +90,8 @@ void cbvcs::OnAttach()
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_OPEN, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectOpen));
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_CLOSE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectClose));
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectSave));
-    Manager::Get()->RegisterEventSink(cbEVT_EDITOR_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorSave));
+    Manager::Get()->RegisterEventSink(cbEVT_EDITOR_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorUpdate));
+    Manager::Get()->RegisterEventSink(cbEVT_EDITOR_MODIFIED, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorUpdate));
 }
 
 void cbvcs::OnRelease(bool appShutDown)
@@ -495,7 +496,7 @@ void cbvcs::OnProjectSave( CodeBlocksEvent& event )
     prjTracker->GetVcs().UpdateOp->execute( std::move( files));
 }
 
-void cbvcs::OnEditorSave( CodeBlocksEvent& event )
+void cbvcs::OnEditorUpdate(CodeBlocksEvent& event)
 {
     cbEditor* ed = (cbEditor*) event.GetEditor();
 
