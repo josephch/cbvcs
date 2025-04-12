@@ -92,6 +92,7 @@ void cbvcs::OnAttach()
     Manager::Get()->RegisterEventSink(cbEVT_PROJECT_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnProjectSave));
     Manager::Get()->RegisterEventSink(cbEVT_EDITOR_SAVE, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorUpdate));
     Manager::Get()->RegisterEventSink(cbEVT_EDITOR_MODIFIED, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorUpdate));
+    Manager::Get()->RegisterEventSink(cbEVT_EDITOR_ACTIVATED, new cbEventFunctor<cbvcs, CodeBlocksEvent>(this, &cbvcs::OnEditorActivated));
 }
 
 void cbvcs::OnRelease(bool appShutDown)
@@ -542,4 +543,44 @@ void cbvcs::OnEditorUpdate(CodeBlocksEvent& event)
     std::vector<std::shared_ptr<VcsTreeItem>>UpdateList;
     UpdateList.emplace_back(new VcsFileItem(SavedFile));
     prjTracker->GetVcs().UpdateOp->execute(std::move( UpdateList));
+}
+
+void cbvcs::OnEditorActivated(CodeBlocksEvent& event)
+{
+#ifdef PROJECTMANAGER_VCSINFO_SUPPORT
+    cbEditor* ed = (cbEditor*)event.GetEditor();
+
+    if (!ed)
+    {
+        fprintf(stderr, "cbvcs::%s:%d Editor NULL\n", __FUNCTION__, __LINE__);
+        Manager::Get()->GetLogManager()->Log(_("Editor NULL"));
+        return;
+    }
+
+    cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
+
+    if (!prj)
+    {
+        fprintf(stderr, "cbvcs::%s:%d Prj NULL\n", __FUNCTION__, __LINE__);
+        Manager::Get()->GetLogManager()->Log(_("Prj NULL"));
+        return;
+    }
+
+    vcsProjectTracker* prjTracker = m_ProjectTrackers.GetTracker(prj->GetFilename());
+    if (!prjTracker)
+    {
+        fprintf(stderr, "cbvcs::%s:%d Project not tracked\n", __FUNCTION__, __LINE__);
+        // Project not tracked
+        return;
+    }
+    wxString branch = prjTracker->GetVcs().GetBranch();
+    if (branch.IsEmpty())
+    {
+        fprintf(stderr, "cbvcs::%s:%d branch empty\n", __FUNCTION__, __LINE__);
+    }
+    else
+    {
+        prj->SetVcsInfo("br: " + branch);
+    }
+#endif
 }

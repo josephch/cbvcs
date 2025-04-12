@@ -159,6 +159,7 @@ class cbvcs : public cbPlugin
         void OnProjectSave( CodeBlocksEvent& );
         void OnProjectClose( CodeBlocksEvent& );
         void OnEditorUpdate(CodeBlocksEvent&);
+        void OnEditorActivated(CodeBlocksEvent&);
         enum  VcsAction : unsigned int;
         void PerformGroupActionOnSelection(VcsAction);
 };

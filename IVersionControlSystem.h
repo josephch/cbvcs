@@ -48,6 +48,7 @@ class IVersionControlSystem
         VcsFileOp* DiffOp;
         VcsFileOp* RestoreOp;
         VcsFileOp* UpdateFullOp;
+        virtual wxString GetBranch() { return wxEmptyString; }
 
     protected:
         const wxString& m_project;

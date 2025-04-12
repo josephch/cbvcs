@@ -18,6 +18,7 @@
 */
 
 #include "git_libgit2.h"
+#include "git_libgit2_wrapper.h"
 #include "icommandexecuter.h"
 #include <git2.h>
 #include <manager.h>
@@ -150,4 +151,42 @@ wxString LibGit2::QueryRoot(const char *gitWorkDirInProject)
     git_buf_free(&root);
     git_libgit2_shutdown();
     return ret;
+}
+
+wxString LibGit2::GetBranch()
+{
+    GitRepo gitRepo(m_GitRoot);
+    wxString branch;
+    git_repository* repo = gitRepo.m_repo;
+    if (!repo)
+    {
+        fprintf(stderr, "LibGit2::%s:%d gitRepo.m_repo not available\n", __FUNCTION__, __LINE__);
+        return branch;
+    }
+    git_reference* head = nullptr;
+    int error = git_repository_head(&head, repo);
+    if (error == GIT_EUNBORNBRANCH)
+    {
+        fprintf(stderr, "LibGit2::%s:%d Repository has no commits (unborn branch).\n", __FUNCTION__, __LINE__);
+    }
+    else if (error < 0)
+    {
+        const git_error* e = git_error_last();
+        fprintf(stderr, "LibGit2::%s:%d Failed to get HEAD: %s\n", __FUNCTION__, __LINE__,
+                e ? e->message : "unknown error");
+    }
+    else if (git_reference_is_branch(head))
+    {
+        const char* branch_name = nullptr;
+        git_branch_name(&branch_name, head);
+        branch = branch_name;
+        fprintf(stderr, "LibGit2::%s:%d Current branch: %s\n", __FUNCTION__, __LINE__, branch_name);
+    }
+    else
+    {
+        fprintf(stderr, "LibGit2::%s:%d Detached HEAD state.\n", __FUNCTION__, __LINE__);
+    }
+
+    git_reference_free(head);
+    return branch;
 }

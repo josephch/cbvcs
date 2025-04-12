@@ -30,7 +30,8 @@ class LibGit2 : public IVersionControlSystem
     LibGit2(const wxString &project, ICommandExecuter &cmdExecutor, wxString workDirectory);
     virtual ~LibGit2();
 
-    virtual bool move(std::vector<VcsTreeItem *> &) { return false; }
+    virtual bool move(std::vector<VcsTreeItem *> &) override { return false; }
+    wxString GetBranch() override;
 
   protected:
     wxString m_workDirectory;
