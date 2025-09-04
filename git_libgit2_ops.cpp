@@ -389,7 +389,7 @@ void LibGit2CommitOp::ExecuteImplementation(std::vector<std::shared_ptr<VcsTreeI
             return;
         }
 
-        error = git_commit_create(&commit_id, repo, "HEAD", sig, sig, NULL, msg.ToUTF8().data(), tree, 1, &parent);
+        error = git_commit_create(&commit_id, repo, "HEAD", sig, sig, NULL, msg.ToUTF8().data(), tree, 1, (const git_commit **)&parent);
         if (0 != error)
         {
             const git_error *e = git_error_last();

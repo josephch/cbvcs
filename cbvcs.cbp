@@ -22,6 +22,7 @@
 					<Add option="`pkg-config --cflags libgit2`" />
 					<Add option="-Wall" />
 					<Add option="-Werror" />
+					<Add option="-Wno-overloaded-virtual" />
 					<Add option="-DUSE_LIBGIT2" />
 				</Compiler>
 				<Linker>
