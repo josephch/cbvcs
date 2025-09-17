@@ -4,6 +4,7 @@
 	<Project>
 		<Option title="cbvcs" />
 		<Option pch_mode="2" />
+		<Option default_target="unix-libgit2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="unix-libgit2">
